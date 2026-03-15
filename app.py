@@ -1,21 +1,24 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
-import pandas as pd
 
-# Load the saved model
-model = tf.keras.models.load_model('csat_model.keras')
+# 1. Load the model
+# Using compile=False helps avoid version errors during loading
+model = tf.keras.models.load_model('csat_model.keras', compile=False)
 
 st.title("📊 CSAT Prediction Dashboard")
-st.write("Enter the details below to predict Customer Satisfaction.")
+st.write("Enter details to predict Customer Satisfaction score (1-5).")
 
-# Simple Inputs
-res_time = st.number_input("Resolution Time (Minutes)", min_value=1, max_value=1000)
-category = st.selectbox("Category", ['Returns', 'Cancellations', 'General Query', 'Payment'])
+# 2. Setup Inputs (Adjust these based on your actual X features)
+res_time = st.number_input("Resolution Time (Minutes)", min_value=0)
+# Add other inputs here if you have more features!
 
-if st.button("Predict Score"):
-    # Note: Ensure your input matches the shape of X_test (your features)
-    # This is a simplified example; use your actual feature processing here
-    prediction = model.predict(np.array([[res_time]])) 
+if st.button("Predict"):
+    # Reshape input to match what the model expects
+    # If you have 10 features, change '1' to '10'
+    features = np.array([[res_time]]) 
+    
+    prediction = model.predict(features)
     score = np.argmax(prediction) + 1
-    st.success(f"Predicted CSAT Score: {score} ⭐")
+    
+    st.success(f"The predicted CSAT score is: {score} ⭐")
