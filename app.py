@@ -1,33 +1,48 @@
 import streamlit as st
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
 import numpy as np
 
-# 1. Rebuild the Model Architecture (Must match your training code exactly)
-def load_trained_model():
-    model = Sequential([
-        # Change 'units' to the best one found by your Tuner (e.g., 64 or 128)
-        Dense(64, activation='relu', input_shape=(1,)), 
-        Dropout(0.2),
-        Dense(32, activation='relu'),
-        Dense(5, activation='softmax')
-    ])
-    
-    # 2. Load the weights from your .keras file
-    # If this fails, make sure the file name is exactly 'csat_model.keras'
-    model.load_weights('csat_model.keras')
-    return model
+# Use a decorator to cache the model so it doesn't reload on every click
+@st.cache_resource
+def load_my_model():
+    # Attempt to load the full model first
+    try:
+        # 'compile=False' is key here to avoid version issues with optimizers
+        return tf.keras.models.load_model('csat_model.keras', compile=False)
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
-model = load_trained_model()
+model = load_my_model()
 
-st.title("📊 CSAT Prediction Dashboard")
+st.set_page_config(page_title="CSAT Predictor", page_icon="📊")
+st.title("📊 Customer Satisfaction (CSAT) Predictor")
+st.write("This ANN model predicts satisfaction scores based on interaction data.")
 
-# 3. Simple Input
-res_time = st.number_input("Resolution Time (Minutes)", min_value=0)
+# Sidebar for professional touch
+st.sidebar.header("User Input")
+res_time = st.sidebar.number_input("Resolution Time (Minutes)", min_value=0, value=10)
 
-if st.button("Predict"):
-    features = np.array([[res_time]])
-    prediction = model.predict(features)
-    score = np.argmax(prediction) + 1
-    st.success(f"Predicted CSAT Score: {score} ⭐")
+# Main Prediction Area
+if model is not None:
+    if st.button("Generate Prediction"):
+        # Ensure the input shape is (1, number_of_features)
+        # If your model was trained on more than 1 feature, 
+        # you must provide all of them here in order.
+        input_data = np.array([[res_time]], dtype=np.float32)
+        
+        prediction = model.predict(input_data)
+        final_score = np.argmax(prediction) + 1
+        
+        # Display Result
+        st.subheader("Result:")
+        st.metric(label="Predicted CSAT Score", value=f"{final_score} / 5")
+        
+        if final_score >= 4:
+            st.success("Great! The customer is likely satisfied. 😊")
+        elif final_score == 3:
+            st.warning("Neutral. There is room for improvement. 😐")
+        else:
+            st.error("Alert: Potential dissatisfied customer. 🚩")
+else:
+    st.warning("Model file not found. Please ensure 'csat_model.keras' is in your GitHub repository.")
