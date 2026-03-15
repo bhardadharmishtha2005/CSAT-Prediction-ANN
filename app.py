@@ -52,8 +52,10 @@ if st.button("Predict CSAT Score"):
     prediction = model.predict(input_data)
 
     # Convert prediction to rating
-    score = int(np.round(prediction[0][0] * 5))
-    score = max(1, min(score,5))
+    pred_value = prediction[0][0]
+
+    # Convert model output to CSAT rating
+    score = int(np.clip(round(pred_value), 1, 5))
 
     stars = "⭐" * score
 
