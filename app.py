@@ -10,7 +10,7 @@ st.title("📊 CSAT Prediction Dashboard")
 st.write("Enter interaction details to predict the Customer Satisfaction score.")
 
 # Load trained ANN model
-model = tf.keras.models.load_model("csat_ann_model.h5")
+model = tf.keras.models.load_model("best_ann_model.keras")
 
 # Layout for features
 col1, col2 = st.columns(2)
