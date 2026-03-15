@@ -1,12 +1,12 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
-import joblib
 
+# Cache the model to prevent reloading on every interaction
 @st.cache_resource
 def load_my_model():
     try:
-        # Loading with compile=False to bypass version-specific optimizer errors
+        # Loading with compile=False is essential to bypass version-specific optimizer errors
         return tf.keras.models.load_model('csat_model.keras', compile=False)
     except Exception as e:
         st.error(f"Error loading model: {e}")
@@ -14,39 +14,41 @@ def load_my_model():
 
 model = load_my_model()
 
-# Load your scaler if you used one (highly recommended for ANNs)
-# scaler = joblib.load('scaler.joblib') 
+st.set_page_config(page_title="CSAT Predictor", page_icon="📊")
+st.title("📊 Customer Satisfaction (CSAT) Predictor")
+st.write("Enter the 12 features from your dataset to predict the CSAT score.")
 
-st.title("📊 CSAT Prediction Dashboard")
-
-# You need 12 inputs to match the model's training data
+# Professional layout with two columns for the 12 inputs
 col1, col2 = st.columns(2)
 
 with col1:
-    res_time = st.number_input("Resolution Time (Min)", min_value=0, value=10)
-    feat2 = st.number_input("Feature 2", value=0)
-    feat3 = st.number_input("Feature 3", value=0)
-    feat4 = st.number_input("Feature 4", value=0)
-    feat5 = st.number_input("Feature 5", value=0)
-    feat6 = st.number_input("Feature 6", value=0)
+    f1 = st.number_input("Feature 1 (e.g., Res Time)", value=0.0)
+    f2 = st.number_input("Feature 2", value=0.0)
+    f3 = st.number_input("Feature 3", value=0.0)
+    f4 = st.number_input("Feature 4", value=0.0)
+    f5 = st.number_input("Feature 5", value=0.0)
+    f6 = st.number_input("Feature 6", value=0.0)
 
 with col2:
-    feat7 = st.number_input("Feature 7", value=0)
-    feat8 = st.number_input("Feature 8", value=0)
-    feat9 = st.number_input("Feature 9", value=0)
-    feat10 = st.number_input("Feature 10", value=0)
-    feat11 = st.number_input("Feature 11", value=0)
-    feat12 = st.number_input("Feature 12", value=0)
+    f7 = st.number_input("Feature 7", value=0.0)
+    f8 = st.number_input("Feature 8", value=0.0)
+    f9 = st.number_input("Feature 9", value=0.0)
+    f10 = st.number_input("Feature 10", value=0.0)
+    f11 = st.number_input("Feature 11", value=0.0)
+    f12 = st.number_input("Feature 12", value=0.0)
 
-if st.button("Predict"):
+if st.button("Generate Prediction"):
     if model is not None:
-        # Create an array with all 12 features
-        input_data = np.array([[res_time, feat2, feat3, feat4, feat5, feat6, 
-                                feat7, feat8, feat9, feat10, feat11, feat12]], dtype=np.float32)
+        # Combine all 12 inputs into the required (1, 12) shape
+        input_data = np.array([[f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12]], dtype=np.float32)
         
-        # If you used a scaler in Colab, apply it here:
-        # input_data = scaler.transform(input_data)
-        
+        # Make the prediction
         prediction = model.predict(input_data)
-        score = np.argmax(prediction) + 1
-        st.success(f"Predicted CSAT Score: {score} ⭐")
+        
+        # Get the class with the highest probability (1-5)
+        final_score = np.argmax(prediction) + 1
+        
+        st.subheader("Final Result:")
+        st.success(f"The predicted CSAT score is: {final_score} ⭐")
+    else:
+        st.error("Model not loaded. Please check your GitHub repository for 'csat_model.keras'.")
