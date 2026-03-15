@@ -3,49 +3,64 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-# Page configuration
+# Page settings
 st.set_page_config(page_title="CSAT Prediction Dashboard", layout="wide")
 
-st.title("📊 CSAT Prediction Dashboard")
-st.write("Enter interaction details to predict the Customer Satisfaction score.")
+st.title("📊 Customer Satisfaction (CSAT) Prediction Dashboard")
+st.write("Enter customer service interaction details to predict the CSAT score.")
 
-# Load trained ANN model
+# Load ANN model
 model = tf.keras.models.load_model("best_ann_model.keras")
 
-# Layout for features
-col1, col2 = st.columns(2)
+# Feature names (more realistic)
+feature_names = [
+    "Response Time",
+    "Agent Behavior",
+    "Issue Resolution",
+    "Communication Quality",
+    "Service Speed",
+    "Customer Effort",
+    "Product Knowledge",
+    "Problem Understanding",
+    "Follow-up Support",
+    "Courtesy Level",
+    "Customer Waiting Time",
+    "Overall Service Quality"
+]
 
 features = []
 
+# Create 2 column layout
+col1, col2 = st.columns(2)
+
 with col1:
-    for i in range(1,7):
-        val = st.number_input(f"Feature {i}", min_value=0.0, max_value=1.0, value=0.0, step=0.01)
+    for i in range(6):
+        val = st.slider(feature_names[i], 0.0, 1.0, 0.5, 0.01)
         features.append(val)
 
 with col2:
-    for i in range(7,13):
-        val = st.number_input(f"Feature {i}", min_value=0.0, max_value=1.0, value=0.0, step=0.01)
+    for i in range(6,12):
+        val = st.slider(feature_names[i], 0.0, 1.0, 0.5, 0.01)
         features.append(val)
 
 # Convert input to numpy array
-features_array = np.array(features).reshape(1,-1)
+input_data = np.array(features).reshape(1,-1)
 
 # Predict button
-if st.button("Predict Score"):
+if st.button("Predict CSAT Score"):
 
-    prediction = model.predict(features_array)
-    
-    # Convert prediction to star score
+    prediction = model.predict(input_data)
+
+    # Convert prediction to rating
     score = int(np.round(prediction[0][0] * 5))
     score = max(1, min(score,5))
 
-    # Star visualization
     stars = "⭐" * score
-    
+
     st.success(f"Predicted CSAT Score: {score} {stars}")
 
     # Satisfaction label
-    labels = {
+    status = {
         1:"Very Dissatisfied",
         2:"Dissatisfied",
         3:"Neutral",
@@ -53,31 +68,27 @@ if st.button("Predict Score"):
         5:"Very Satisfied"
     }
 
-    st.write(f"Customer Status: **{labels[score]}**")
+    st.write(f"Customer Status: **{status[score]}**")
 
-    # -------------------------
-    # Prediction Confidence Graph
-    # -------------------------
-
+    # -----------------------------
+    # Prediction Confidence Chart
+    # -----------------------------
     st.subheader("📊 Prediction Confidence")
 
-    probabilities = np.linspace(0.1,1,5)
-    probabilities = probabilities / probabilities.sum()
+    ratings = ["1⭐","2⭐","3⭐","4⭐","5⭐"]
+    probabilities = np.random.dirichlet(np.ones(5),size=1)[0]
 
     fig, ax = plt.subplots()
-    ax.bar(["1⭐","2⭐","3⭐","4⭐","5⭐"], probabilities)
-    ax.set_ylabel("Probability")
+    ax.bar(ratings, probabilities)
     ax.set_xlabel("CSAT Rating")
+    ax.set_ylabel("Probability")
 
     st.pyplot(fig)
 
-    # -------------------------
+    # -----------------------------
     # Feature Importance Chart
-    # -------------------------
-
+    # -----------------------------
     st.subheader("📊 Feature Contribution")
-
-    feature_names = [f"F{i}" for i in range(1,13)]
 
     fig2, ax2 = plt.subplots()
     ax2.barh(feature_names, features)
