@@ -51,15 +51,16 @@ if st.button("Predict CSAT Score"):
 
     prediction = model.predict(input_data)
 
-    # Convert prediction to rating
     pred_value = prediction[0][0]
 
-    # Convert model output to CSAT rating
-    score = int(np.clip(round(pred_value), 1, 5))
+    score = int(round(pred_value * 5))
+    score = max(1, min(score,5))
 
     stars = "⭐" * score
 
     st.success(f"Predicted CSAT Score: {score} {stars}")
+
+    st.write("Raw Model Output:", pred_value)
 
     # Satisfaction label
     status = {
