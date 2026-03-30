@@ -2,32 +2,33 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 
-# Page configuration for a professional wide-screen white layout
-st.set_page_config(
-    page_title="CSAT Intelligence Hub", 
-    layout="wide", 
-    page_icon="📊"
-)
+# Page configuration
+st.set_page_config(page_title="CSAT Analytics Hub", layout="wide")
 
-# Custom CSS for Total White Background & "PhonePe" Style UI
+# CSS to fix visibility: Force dark text on white background
 st.markdown("""
     <style>
     .stApp {
         background-color: #FFFFFF;
     }
-    .metric-container {
-        background-color: #fcfcfc;
+    /* Force all text to be dark grey/black for visibility */
+    h1, h2, h3, h4, h5, h6, p, label, .stSlider {
+        color: #1c1c1c !important;
+    }
+    /* Style for the Interaction Metrics section */
+    .metric-box {
+        background-color: #f9f9f9;
         padding: 20px;
-        border-radius: 12px;
+        border-radius: 10px;
         border: 1px solid #eeeeee;
     }
+    /* PhonePe Purple Button */
     .stButton>button {
+        background-color: #5f259f;
+        color: white !important;
         width: 100%;
-        background-color: #5f259f; /* PhonePe Purple */
-        color: white;
         border-radius: 8px;
-        height: 3.5em;
-        font-weight: bold;
+        height: 3em;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -35,7 +36,7 @@ st.markdown("""
 @st.cache_resource
 def load_my_model():
     try:
-        # Rebuilding skeleton to bypass deserialization errors
+        # Rebuilding skeleton to match your 12-feature training logs
         model = tf.keras.models.Sequential([
             tf.keras.layers.Input(shape=(12,)), 
             tf.keras.layers.Dense(96, activation='relu'),
@@ -50,17 +51,16 @@ def load_my_model():
 
 model = load_my_model()
 
-# --- HEADER ---
-st.title("📊 Customer Satisfaction (CSAT) Intelligence Hub")
-st.write("Professional ANN Engine for Real-time Satisfaction Forecasting")
+# --- MAIN UI ---
+st.title("📊 CSAT Prediction Intelligence Hub")
+st.markdown("##### Professional Deep Learning Engine for Customer Satisfaction Forecasting")
 st.divider()
 
-# --- INTERACTION METRICS (FRONT & CENTER) ---
 st.subheader("📋 Interaction Metrics")
-st.info("Adjust the 12 Key Performance Indicators (KPIs) below for analysis.")
+st.write("Adjust the sliders below to represent the customer service parameters.")
 
-# Organizing into 3 columns for a clean center-screen look
-c1, c2, c3 = st.columns(3, gap="large")
+# Grid layout for 12 features (Front & Center)
+c1, c2, c3 = st.columns(3)
 
 with c1:
     f1 = st.slider("Response Time", 0.0, 1.0, 0.5)
@@ -78,30 +78,22 @@ with c3:
     f9 = st.slider("Follow-up Support", 0.0, 1.0, 0.5)
     f10 = st.slider("Courtesy Level", 0.0, 1.0, 0.5)
     f11 = st.slider("Waiting Time", 0.0, 1.0, 0.5)
-    f12 = st.slider("Overall Service Quality", 0.0, 1.0, 0.5)
+    f12 = st.slider("Service Quality", 0.0, 1.0, 0.5)
 
 st.divider()
 
-# --- PREDICTION ---
-res_col1, res_col2 = st.columns([1, 1])
+# Prediction Area
+col_left, col_right = st.columns([1, 1])
 
-with res_col1:
-    if st.button("Generate Analytics Score"):
+with col_left:
+    if st.button("Generate Analytics Report"):
         if model:
-            input_data = np.array([[f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12]], dtype=np.float32)
-            prediction = model.predict(input_data)
+            data = np.array([[f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12]], dtype=np.float32)
+            prediction = model.predict(data)
             score = np.argmax(prediction) + 1
-            
             st.metric(label="Predicted CSAT Score", value=f"{score} / 5 ⭐")
-            
-            if score >= 4: st.success("Outcome: High Customer Satisfaction")
-            elif score == 3: st.warning("Outcome: Neutral Customer Experience")
-            else: st.error("Outcome: Dissatisfaction Risk Detected")
         else:
-            st.error("System Offline: Model weights not found.")
+            st.error("Model file 'csat_model.keras' not found in repository.")
 
-with res_col2:
-    st.markdown("### System Insights")
-    st.write(f"**Model Type:** Artificial Neural Network (ANN)")
-    st.write(f"**Input Shape:** 12 Features")
-    st.write("**Status:** ✅ Operational")
+with col_right:
+    st.info("**System Info:** ANN Architecture 12-96-32-5")
