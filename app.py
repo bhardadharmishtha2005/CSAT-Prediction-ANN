@@ -1,101 +1,77 @@
 import streamlit as st
-import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
+import numpy as np
 
-# Page settings
-st.set_page_config(page_title="CSAT Prediction Dashboard", layout="wide")
+# Page config for a professional look
+st.set_page_config(page_title="CSAT Intelligence Hub", layout="wide", page_icon="📊")
 
-st.title("📊 Customer Satisfaction (CSAT) Prediction Dashboard")
-st.write("Enter customer service interaction details to predict the CSAT score.")
+@st.cache_resource
+def load_my_model():
+    try:
+        # Rebuilding skeleton to bypass quantization_config errors
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Input(shape=(12,)), 
+            tf.keras.layers.Dense(96, activation='relu'),
+            tf.keras.layers.Dropout(0.3),
+            tf.keras.layers.Dense(32, activation='relu'),
+            tf.keras.layers.Dense(5, activation='softmax')
+        ])
+        model.load_weights('csat_model.keras')
+        return model
+    except Exception as e:
+        st.error(f"Model Load Error: {e}")
+        return None
 
-# Load ANN model
-model = tf.keras.models.load_model("best_ann_model.keras")
+model = load_my_model()
 
-# Feature names (more realistic)
-feature_names = [
-    "Response Time",
-    "Agent Behavior",
-    "Issue Resolution",
-    "Communication Quality",
-    "Service Speed",
-    "Customer Effort",
-    "Product Knowledge",
-    "Problem Understanding",
-    "Follow-up Support",
-    "Courtesy Level",
-    "Customer Waiting Time",
-    "Overall Service Quality"
-]
+# --- SIDEBAR INPUTS (PhonePe Style) ---
+st.sidebar.header("📋 Interaction Metrics")
+st.sidebar.write("Adjust the values below:")
 
-features = []
+f1 = st.sidebar.slider("Response Time", 0.0, 1.0, 0.5)
+f2 = st.sidebar.slider("Agent Behavior", 0.0, 1.0, 0.5)
+f3 = st.sidebar.slider("Issue Resolution", 0.0, 1.0, 0.5)
+f4 = st.sidebar.slider("Communication Quality", 0.0, 1.0, 0.5)
+f5 = st.sidebar.slider("Service Speed", 0.0, 1.0, 0.5)
+f6 = st.sidebar.slider("Customer Effort", 0.0, 1.0, 0.5)
+f7 = st.sidebar.slider("Product Knowledge", 0.0, 1.0, 0.5)
+f8 = st.sidebar.slider("Problem Understanding", 0.0, 1.0, 0.5)
+f9 = st.sidebar.slider("Follow-up Support", 0.0, 1.0, 0.5)
+f10 = st.sidebar.slider("Courtesy Level", 0.0, 1.0, 0.5)
+f11 = st.sidebar.slider("Customer Waiting Time", 0.0, 1.0, 0.5)
+f12 = st.sidebar.slider("Overall Service Quality", 0.0, 1.0, 0.5)
 
-# Create 2 column layout
-col1, col2 = st.columns(2)
+# --- MAIN DISPLAY ---
+st.title("📊 CSAT Prediction Intelligence Hub")
+st.markdown("---")
+
+# Use columns for a clean look
+col1, col2 = st.columns([2, 1])
 
 with col1:
-    for i in range(6):
-        val = st.slider(feature_names[i], 0.0, 1.0, 0.5, 0.01)
-        features.append(val)
+    st.subheader("Model Status")
+    if model:
+        st.success("✅ DeepCSAT Model Active & Loaded")
+    else:
+        st.error("❌ Model Offline")
+
+    st.info("This system uses an Artificial Neural Network (ANN) to analyze customer service efficiency based on 12 key performance indicators (KPIs).")
 
 with col2:
-    for i in range(6,12):
-        val = st.slider(feature_names[i], 0.0, 1.0, 0.5, 0.01)
-        features.append(val)
-
-# Convert input to numpy array
-input_data = np.array(features).reshape(1,-1)
-
-# Predict button
-if st.button("Predict CSAT Score"):
-
-    prediction = model.predict(input_data)
-
-    pred_value = prediction[0][0]
-
-    score = int(round(pred_value * 5))
-    score = max(1, min(score,5))
-
-    stars = "⭐" * score
-
-    st.success(f"Predicted CSAT Score: {score} {stars}")
-
-    st.write("Raw Model Output:", pred_value)
-
-    # Satisfaction label
-    status = {
-        1:"Very Dissatisfied",
-        2:"Dissatisfied",
-        3:"Neutral",
-        4:"Satisfied",
-        5:"Very Satisfied"
-    }
-
-    st.write(f"Customer Status: **{status[score]}**")
-
-    # -----------------------------
-    # Prediction Confidence Chart
-    # -----------------------------
-    st.subheader("📊 Prediction Confidence")
-
-    ratings = ["1⭐","2⭐","3⭐","4⭐","5⭐"]
-    probabilities = np.random.dirichlet(np.ones(5),size=1)[0]
-
-    fig, ax = plt.subplots()
-    ax.bar(ratings, probabilities)
-    ax.set_xlabel("CSAT Rating")
-    ax.set_ylabel("Probability")
-
-    st.pyplot(fig)
-
-    # -----------------------------
-    # Feature Importance Chart
-    # -----------------------------
-    st.subheader("📊 Feature Contribution")
-
-    fig2, ax2 = plt.subplots()
-    ax2.barh(feature_names, features)
-    ax2.set_xlabel("Input Value")
-    ax2.set_ylabel("Features")
-
-    st.pyplot(fig2)
+    st.subheader("Predict Satisfaction")
+    if st.button("Generate CSAT Score", use_container_width=True):
+        if model:
+            input_data = np.array([[f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12]], dtype=np.float32)
+            prediction = model.predict(input_data)
+            score = np.argmax(prediction) + 1
+            
+            # Big Metric display like PhonePe
+            st.metric(label="Predicted Score", value=f"{score} / 5 ⭐")
+            
+            if score >= 4:
+                st.balloons()
+                st.success("High Satisfaction Predicted!")
+            elif score == 3:
+                st.warning("Neutral Sentiment Detected.")
+            else:
+                st.error("Dissatisfaction Risk Detected!")
