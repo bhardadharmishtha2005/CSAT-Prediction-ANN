@@ -2,48 +2,32 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 
-# Page configuration for a clean, white, wide-screen layout
+# Page configuration for a professional wide-screen white layout
 st.set_page_config(
-    page_title="CSAT Analytics Hub", 
+    page_title="CSAT Intelligence Hub", 
     layout="wide", 
     page_icon="📊"
 )
 
-# CSS for Total White Background, Card Styling, and Purple Accents
+# Custom CSS for Total White Background & "PhonePe" Style UI
 st.markdown("""
     <style>
-    /* Force total white background */
     .stApp {
         background-color: #FFFFFF;
     }
-    /* Hide the sidebar for a centered experience */
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-    /* Metric and Input Card Styling */
     .metric-container {
         background-color: #fcfcfc;
-        padding: 25px;
-        border-radius: 15px;
+        padding: 20px;
+        border-radius: 12px;
         border: 1px solid #eeeeee;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        margin-bottom: 20px;
     }
-    .stSlider > div [data-baseweb="slider"] {
-        width: 95%;
-    }
-    /* Professional Purple Button (PhonePe style) */
     .stButton>button {
-        background-color: #5f259f;
+        width: 100%;
+        background-color: #5f259f; /* PhonePe Purple */
         color: white;
         border-radius: 8px;
         height: 3.5em;
         font-weight: bold;
-        transition: 0.3s;
-    }
-    .stButton>button:hover {
-        background-color: #4b1d7d;
-        border-color: #4b1d7d;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -51,7 +35,7 @@ st.markdown("""
 @st.cache_resource
 def load_my_model():
     try:
-        # Rebuilding the architecture to match your 12-feature training
+        # Rebuilding skeleton to bypass deserialization errors
         model = tf.keras.models.Sequential([
             tf.keras.layers.Input(shape=(12,)), 
             tf.keras.layers.Dense(96, activation='relu'),
@@ -66,16 +50,16 @@ def load_my_model():
 
 model = load_my_model()
 
-# --- HEADER SECTION ---
-st.title("📊 CSAT Prediction Intelligence Hub")
-st.write("Professional Deep Learning Engine for Customer Satisfaction Forecasting")
+# --- HEADER ---
+st.title("📊 Customer Satisfaction (CSAT) Intelligence Hub")
+st.write("Professional ANN Engine for Real-time Satisfaction Forecasting")
 st.divider()
 
 # --- INTERACTION METRICS (FRONT & CENTER) ---
 st.subheader("📋 Interaction Metrics")
-st.info("Adjust the sliders below to represent the customer service interaction parameters.")
+st.info("Adjust the 12 Key Performance Indicators (KPIs) below for analysis.")
 
-# Create 3 columns to organize the 12 features professionally
+# Organizing into 3 columns for a clean center-screen look
 c1, c2, c3 = st.columns(3, gap="large")
 
 with c1:
@@ -94,38 +78,30 @@ with c3:
     f9 = st.slider("Follow-up Support", 0.0, 1.0, 0.5)
     f10 = st.slider("Courtesy Level", 0.0, 1.0, 0.5)
     f11 = st.slider("Waiting Time", 0.0, 1.0, 0.5)
-    f12 = st.slider("Service Quality", 0.0, 1.0, 0.5)
+    f12 = st.slider("Overall Service Quality", 0.0, 1.0, 0.5)
 
-st.markdown("---")
+st.divider()
 
-# --- PREDICTION & RESULTS SECTION ---
+# --- PREDICTION ---
 res_col1, res_col2 = st.columns([1, 1])
 
 with res_col1:
-    st.subheader("Model Prediction")
-    if st.button("Generate Analytics Report"):
+    if st.button("Generate Analytics Score"):
         if model:
             input_data = np.array([[f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12]], dtype=np.float32)
             prediction = model.predict(input_data)
             score = np.argmax(prediction) + 1
             
-            # Big Metric Output
             st.metric(label="Predicted CSAT Score", value=f"{score} / 5 ⭐")
             
-            if score >= 4:
-                st.success("Result: High Customer Satisfaction")
-            elif score == 3:
-                st.warning("Result: Neutral Customer Experience")
-            else:
-                st.error("Result: High Dissatisfaction Risk")
+            if score >= 4: st.success("Outcome: High Customer Satisfaction")
+            elif score == 3: st.warning("Outcome: Neutral Customer Experience")
+            else: st.error("Outcome: Dissatisfaction Risk Detected")
         else:
-            st.error("System Error: Weights file 'csat_model.keras' not detected.")
+            st.error("System Offline: Model weights not found.")
 
 with res_col2:
-    st.subheader("System Insights")
+    st.markdown("### System Insights")
     st.write(f"**Model Type:** Artificial Neural Network (ANN)")
-    st.write(f"**Input Shape:** 12 Parallel Features")
-    st.write(f"**Target:** Satisfaction Classification (1-5)")
+    st.write(f"**Input Shape:** 12 Features")
     st.write("**Status:** ✅ Operational")
-
-st.caption("AI/ML Internship | Developed by Bharda Dharmishtha | Labmentix 2026")
